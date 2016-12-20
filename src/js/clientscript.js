@@ -12,6 +12,8 @@ gameEngine.client.mouseMoveTarget = { x: -1 | 0, y: -1 | 0 };
 gameEngine.client.eventsRegistered = false;
 gameEngine.client.reportInProgress = false;
 gameEngine.client.animationQueue = [];
+var xDecal = 14;
+var yDecal = 9;
 
 // #region Utils
 gameEngine.client.ws.onmessage = function (event) {
@@ -153,7 +155,8 @@ function drawTiles(partialEngine) {
     for (let y = 0; y < gameEngine.level.height; y++) {
         for (let x = 0; x < gameEngine.level.width; x++) {
             if (gameEngine.level.tiles[y][x].state === murmures.C.TILE_HIGHLIGHTED) {
-                document.getElementById('fogOfWarLayer').getContext('2d').clearRect(gameEngine.tileSize * x, gameEngine.tileSize * y, gameEngine.tileSize, gameEngine.tileSize);
+            //    document.getElementById('fogOfWarLayer').getContext('2d').clearRect(gameEngine.tileSize * x, gameEngine.tileSize * y, gameEngine.tileSize, gameEngine.tileSize);
+               document.getElementById('fogOfWarLayer').getContext('2d').clearRect(gameEngine.tileSize * (x+xDecal-gameEngine.heros[0].position.x), gameEngine.tileSize * (y+yDecal-gameEngine.heros[0].position.y), gameEngine.tileSize, gameEngine.tileSize);
             }
         }
     }
@@ -177,8 +180,10 @@ function drawOneTile(x, y) {
         drawOneLayer(x, y, 'itemId');
         drawOneLayer(x, y, 'effectId');
     }
+    //if (gameEngine.level.tiles[y+yDecal - gameEngine.heros[0].position.y][x+xDecal - gameEngine.heros[0].position.x].state === murmures.C.TILE_FOG_OF_WAR) {
     if (gameEngine.level.tiles[y][x].state === murmures.C.TILE_FOG_OF_WAR) {
-        drawOneSquare(document.getElementById('fogOfWarLayer').getContext('2d'), x, y, "#000000", true);
+        drawOneSquare(document.getElementById('fogOfWarLayer').getContext('2d'), x+xDecal - gameEngine.heros[0].position.x, y+yDecal - gameEngine.heros[0].position.y, "#000000", true);
+    //    drawOneSquare(document.getElementById('fogOfWarLayer').getContext('2d'), x, y, "#000000", true);
     }
 }
 
@@ -189,23 +194,23 @@ function drawOneLayer(x, y, layerId) {
         let tilesetY = (tilesetRank - tilesetX) / 64;
         document.getElementById('tilesLayer').getContext('2d').drawImage(gameEngine.client.tilesetImg,
                     tilesetX * gameEngine.tileSize, tilesetY * gameEngine.tileSize, gameEngine.tileSize, gameEngine.tileSize,
-                    gameEngine.tileSize * x, gameEngine.tileSize * y, gameEngine.tileSize, gameEngine.tileSize);
+                    gameEngine.tileSize * (x + xDecal) - gameEngine.heros[0].position.x *gameEngine.tileSize, gameEngine.tileSize * (y+yDecal) - gameEngine.heros[0].position.y * gameEngine.tileSize  , gameEngine.tileSize, gameEngine.tileSize);
     }
 }
 
 function drawOneSquare(context, x, y, color, filled) {
     context.beginPath();
     if (filled || y === 0) {
-        context.moveTo(gameEngine.tileSize * x, gameEngine.tileSize * y);
-        context.lineTo(gameEngine.tileSize * x + gameEngine.tileSize, gameEngine.tileSize * y);
+        context.moveTo(gameEngine.tileSize * (x + xDecal) - gameEngine.heros[0].position.x *gameEngine.tileSize, gameEngine.tileSize * (y+yDecal) - gameEngine.heros[0].position.y * gameEngine.tileSize);
+        context.lineTo(gameEngine.tileSize * (x + xDecal) - gameEngine.heros[0].position.x *gameEngine.tileSize + gameEngine.tileSize, gameEngine.tileSize * (y+yDecal) - gameEngine.heros[0].position.y * gameEngine.tileSize);
     }
     else {
-        context.moveTo(gameEngine.tileSize * x + gameEngine.tileSize, gameEngine.tileSize * y);
+        context.moveTo(gameEngine.tileSize * (x + xDecal) - gameEngine.heros[0].position.x *gameEngine.tileSize + gameEngine.tileSize, gameEngine.tileSize * (y+yDecal) - gameEngine.heros[0].position.y * gameEngine.tileSize);
     }
-    context.lineTo(gameEngine.tileSize * x + gameEngine.tileSize, gameEngine.tileSize * y + gameEngine.tileSize);
-    context.lineTo(gameEngine.tileSize * x, gameEngine.tileSize * y + gameEngine.tileSize);
+    context.lineTo(gameEngine.tileSize * (x + xDecal) - gameEngine.heros[0].position.x *gameEngine.tileSize + gameEngine.tileSize, gameEngine.tileSize * (y+yDecal) - gameEngine.heros[0].position.y * gameEngine.tileSize + gameEngine.tileSize);
+    context.lineTo(gameEngine.tileSize * (x + xDecal) - gameEngine.heros[0].position.x *gameEngine.tileSize, gameEngine.tileSize * (y+yDecal) - gameEngine.heros[0].position.y * gameEngine.tileSize + gameEngine.tileSize);
     if (filled || x === 0) {
-        context.lineTo(gameEngine.tileSize * x, gameEngine.tileSize * y);
+        context.lineTo(gameEngine.tileSize * (x + xDecal) - gameEngine.heros[0].position.x *gameEngine.tileSize, gameEngine.tileSize * (y+yDecal) - gameEngine.heros[0].position.y * gameEngine.tileSize);
     }
     context.strokeStyle = color;
     context.stroke();
@@ -297,8 +302,8 @@ function queueProjectile(start, sourceTile, destTile, endEvent) {
 
 function drawAnimation(start, end, timestamp, imgX, imgY, sourceTile, destTile) {
     let lerpRatio = (timestamp - start) / (end - start);
-    let lerpX = sourceTile.x * (1 - lerpRatio) + destTile.x * lerpRatio;
-    let lerpY = sourceTile.y * (1 - lerpRatio) + destTile.y * lerpRatio;
+    let lerpX = (sourceTile.x+xDecal-gameEngine.heros[0].position.x) * (1 - lerpRatio) + (destTile.x+xDecal-gameEngine.heros[0].position.x) * lerpRatio;
+    let lerpY = (sourceTile.y+yDecal-gameEngine.heros[0].position.y) * (1 - lerpRatio) + (destTile.y+yDecal-gameEngine.heros[0].position.y) * lerpRatio;
     document.getElementById('projectileLayer').getContext('2d').drawImage(gameEngine.client.tilesetImg,
                     imgX * gameEngine.tileSize, imgY * gameEngine.tileSize, gameEngine.tileSize, gameEngine.tileSize,
                     gameEngine.tileSize * lerpX, gameEngine.tileSize * lerpY, gameEngine.tileSize, gameEngine.tileSize);
@@ -581,7 +586,9 @@ function drawCharacter(character) {
         document.getElementById('characterLayer').getContext('2d').drawImage(
             !character.isHero || character.stateOrder === murmures.C.STATE_HERO_ORDER_INPROGRESS ? gameEngine.client.tilesetImg : gameEngine.client.tilesetImgGray,
                     tilesetX * gameEngine.tileSize, tilesetY * gameEngine.tileSize, gameEngine.tileSize, gameEngine.tileSize,
-                    gameEngine.tileSize * character.position.x, gameEngine.tileSize * character.position.y, gameEngine.tileSize, gameEngine.tileSize);
+                    (character.position.x+xDecal-gameEngine.heros[0].position.x)* gameEngine.tileSize,//gameEngine.tileSize * character.position.x,
+                    (character.position.y+yDecal-gameEngine.heros[0].position.y)* gameEngine.tileSize,//gameEngine.tileSize * character.position.y,
+                    gameEngine.tileSize, gameEngine.tileSize);
     }
 
 }
@@ -602,6 +609,7 @@ function registerEvents() {
     }, false);
     topLayer.addEventListener('mousemove', function (e) {
         e.preventDefault(); // usually, keeping the left mouse button down triggers a text selection or a drag & drop.
+        //let targetedTile = getHoveredTile(e.offsetX - xDecal, e.offsetY - yDecal);
         let targetedTile = getHoveredTile(e.offsetX, e.offsetY);
         topLayer_onMouseMove(targetedTile, e.button === 2);
     }, false);
@@ -729,6 +737,8 @@ function getHoveredTile(mouseEventX, mouseEventY) {
     let tileY = Math.floor(mouseEventY / gameEngine.tileSize);
     if (tileY < 0) tileY = 0;
     if (tileY >= gameEngine.level.height) tileY = gameEngine.level.height - 1;
+    tileX=tileX - xDecal + gameEngine.heros[0].position.x;
+    tileY=tileY - yDecal + gameEngine.heros[0].position.y;
     return gameEngine.level.tiles[tileY][tileX];
 }
 
@@ -793,7 +803,9 @@ function onOrderResponse(response) {
             drawTiles(gameEngine);
         }
         else {
-            drawTiles(ge);
+          resetCanvas();
+        //drawTiles(ge);
+          drawTiles(gameEngine);
         }
         renderReportQueue();
         if (gameEngine.state === murmures.C.STATE_ENGINE_DEATH) {
